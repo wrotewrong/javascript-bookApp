@@ -109,6 +109,19 @@
   // render();
   // initActions();
 
+  const select = {
+    templateOf: {
+      book: '#template-book',
+    },
+    containerOf: {
+      bookList: '.books-list',
+    },
+    all: {
+      filterForm: '.filters',
+      filtersInputs: '.filters input',
+    },
+  };
+
   class BooksList {
     constructor() {
       this.favoriteBooks = [];
@@ -127,7 +140,7 @@
     renderBooks() {
       const bookTemplates = {
         books: Handlebars.compile(
-          document.querySelector('#template-book').innerHTML
+          document.querySelector(select.templateOf.book).innerHTML
         ),
       };
 
@@ -136,56 +149,58 @@
         book.ratingWidth = book.rating * 10;
 
         const generatedHTML = bookTemplates.books(book);
-        this.element = utils.createDOMFromHTML(generatedHTML);
-        const menuContainer = document.querySelector('.books-list');
-        menuContainer.appendChild(this.element);
+        const bookHTML = utils.createDOMFromHTML(generatedHTML);
+        const booksContainer = document.querySelector(
+          select.containerOf.bookList
+        );
+        booksContainer.appendChild(bookHTML);
       }
     }
 
     getElements() {
       this.dom = {};
-      this.dom.books = document.querySelector('.books-list');
-      this.dom.filterForm = document.querySelector('.filters');
-      this.dom.filterInputs = document.querySelectorAll('.filters input');
+      this.dom.books = document.querySelector(select.containerOf.bookList);
+      this.dom.filterForm = document.querySelector(select.all.filterForm);
+      this.dom.filterInputs = document.querySelectorAll(
+        select.all.filtersInputs
+      );
     }
 
     initActions() {
-      this.dom.books.addEventListener(
-        'dblclick',
-        function (e) {
-          if (e.target.offsetParent.classList.contains('book__image')) {
-            e.preventDefault();
-            const bookId = e.target.offsetParent.getAttribute('data-id');
-            if (!this.favoriteBooks.includes(bookId)) {
-              e.target.offsetParent.classList.add('favorite');
-              this.favoriteBooks.push(bookId);
-            } else {
-              e.target.offsetParent.classList.remove('favorite');
-              this.favoriteBooks.splice(this.favoriteBooks.indexOf(bookId), 1);
-            }
-          }
-        }.bind(this)
-      );
+      this.dom.books.addEventListener('click', (e) => {
+        e.preventDefault();
+      });
 
-      this.dom.filterForm.addEventListener(
-        'click',
-        function (e) {
-          if (
-            e.target.tagName == 'INPUT' &&
-            e.target.type == 'checkbox' &&
-            e.target.name == 'filter'
-          ) {
-            if (e.target.checked) {
-              this.filters.push(e.target.value);
-            } else {
-              this.filters.splice(this.filters.indexOf(e.target.value), 1);
-            }
+      this.dom.books.addEventListener('dblclick', (e) => {
+        if (e.target.offsetParent.classList.contains('book__image')) {
+          e.preventDefault();
+          const bookId = e.target.offsetParent.getAttribute('data-id');
+          if (!this.favoriteBooks.includes(bookId)) {
+            e.target.offsetParent.classList.add('favorite');
+            this.favoriteBooks.push(bookId);
+          } else {
+            e.target.offsetParent.classList.remove('favorite');
+            this.favoriteBooks.splice(this.favoriteBooks.indexOf(bookId), 1);
           }
-          for (let input of this.dom.filterInputs) {
-            input.addEventListener('change', this.filterBooks.bind(this));
+        }
+      });
+
+      this.dom.filterForm.addEventListener('click', (e) => {
+        if (
+          e.target.tagName == 'INPUT' &&
+          e.target.type == 'checkbox' &&
+          e.target.name == 'filter'
+        ) {
+          if (e.target.checked) {
+            this.filters.push(e.target.value);
+          } else {
+            this.filters.splice(this.filters.indexOf(e.target.value), 1);
           }
-        }.bind(this)
-      );
+        }
+        for (let input of this.dom.filterInputs) {
+          input.addEventListener('change', this.filterBooks());
+        }
+      });
     }
 
     filterBooks() {
